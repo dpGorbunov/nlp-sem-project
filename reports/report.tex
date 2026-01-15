@@ -41,7 +41,7 @@ The winning solution by team sastsy achieved 91.22\% accuracy using GigaCheck~\c
 
 \textbf{GigaCheck}~\cite{gigacheck2024} established a strong baseline for LLM-generated content detection using Mistral-7B fine-tuned with LoRA~\cite{hu2022lora}. LoRA enables efficient adaptation by learning low-rank updates: $W' = W + \frac{\alpha}{r} \cdot BA$, where only matrices $B$ and $A$ are trained. GigaCheck uses EOS token pooling and a single classification head.
 
-\textbf{The sastsy solution}~\cite{ainleval2025} improved GigaCheck by splitting classification into two heads: binary (human vs AI) and multiclass (which AI model). This separation helps because detecting AI is easier than identifying the specific model -- the binary head achieves 95\%+ accuracy while multiclass is harder.
+\textbf{The sastsy solution}~\cite{ainleval2025} improved GigaCheck by splitting classification into two heads: binary (human vs AI) and multiclass (which AI model). This separation helps because detecting AI is easier than identifying the specific model.
 
 \section{Model Description}
 
