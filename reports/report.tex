@@ -30,7 +30,7 @@ The winning solution by team sastsy achieved 91.22\% accuracy using GigaCheck~\c
 \begin{enumerate}
     \item \textbf{Qwen2.5-7B}: stronger backbone than Mistral-7B on benchmarks
     \item \textbf{Mahalanobis OOD Detection}: distance-based method for unknown class detection (+10.4\% over baseline)
-    \item \textbf{Knowledge Distillation}: distillation to ruBERT-tiny for CPU inference
+    \item \textbf{Knowledge Distillation}: distillation to ruBERT-tiny2 for CPU inference
 \end{enumerate}
 
 \subsection{Team}
@@ -133,7 +133,7 @@ We also report precision, recall, and F1-score per class, and visualize results 
 \subsection{Baselines}
 \begin{itemize}
     \item TF-IDF + Logistic Regression
-    \item ruBERT-tiny fine-tuned
+    \item ruBERT-tiny2 fine-tuned
     \item sastsy~\cite{ainleval2025}: 1st place winner (GigaCheck-based)
 \end{itemize}
 
@@ -153,7 +153,7 @@ sastsy (1st place)~\cite{ainleval2025} & 91.22\% & -- & -- \\
 \hline
 \multicolumn{4}{|l|}{\textit{Our experiments:}} \\
 TF-IDF + LogReg & 76.85\% & 81.06\% & -- \\
-ruBERT-tiny (fine-tuned) & 78.29\% & 80.29\% & 85.25\% \\
+ruBERT-tiny2 (fine-tuned) & 78.29\% & 80.29\% & 85.25\% \\
 Qwen2.5 + Dual-Head (ours) & 79.53\% & 82.61\% & \textbf{89.97\%} \\
 \hline
 \end{tabular}
@@ -184,8 +184,8 @@ where $T=4$ (temperature), $\alpha=0.7$.
 
 We compare two approaches:
 \begin{itemize}
-    \item Fresh BERT + KD: training from scratch with distillation
-    \item Fine-tuned BERT + KD: further training of already fine-tuned model
+    \item ruBERT-tiny2 + KD only: distillation without prior fine-tuning
+    \item ruBERT-tiny2 fine-tuned + KD: distillation after fine-tuning
 \end{itemize}
 
 \begin{table}[tbh!]
@@ -196,15 +196,15 @@ Model & Size & Inference & Raw Acc & +Mahalanobis \\
 \hline
 Qwen2.5-7B (teacher) & 15 GB & $\sim$300ms (GPU) & 79.53\% & \textbf{89.97\%} \\
 ruBERT-tiny2 (fine-tuned) & 118 MB & $\sim$15ms (CPU) & 78.29\% & 85.25\% \\
-Fresh BERT + KD & 118 MB & $\sim$15ms (CPU) & 74.21\% & 80.44\% \\
-Fine-tuned BERT + KD & 118 MB & $\sim$15ms (CPU) & 77.01\% & 85.25\% \\
+ruBERT-tiny2 + KD & 118 MB & $\sim$15ms (CPU) & 74.21\% & 80.44\% \\
+ruBERT-tiny2 FT + KD & 118 MB & $\sim$15ms (CPU) & 77.01\% & 85.25\% \\
 \hline
 \end{tabular}
-\caption{Teacher vs Student comparison. Qwen: 7.61B params~\cite{qwen2024}, ruBERT-tiny2: 29M params~\cite{ruberttiny2} (260$\times$ fewer params, 127$\times$ smaller file size). Inference times based on~\cite{bertcpu2022}.}
+\caption{Teacher vs Student comparison. FT = fine-tuned, KD = Knowledge Distillation. Qwen: 7.61B params~\cite{qwen2024}, ruBERT-tiny2: 29M params~\cite{ruberttiny2} (260$\times$ fewer params, 127$\times$ smaller file size). Inference times based on~\cite{bertcpu2022}.}
 \label{tab:distill}
 \end{table}
 
-\textbf{Observation}: Distillation from fresh BERT achieves lower accuracy than fine-tuning baseline. This is expected since fresh BERT requires more training to learn from scratch. Fine-tuned BERT + KD achieves the same accuracy as the baseline, suggesting the model has already converged.
+\textbf{Observation}: Distillation without prior fine-tuning achieves lower accuracy than the fine-tuning baseline. This is expected -- the model needs more training to learn from scratch. ruBERT-tiny2 fine-tuned + KD achieves the same accuracy as the baseline, suggesting the model has already converged.
 
 \section{Conclusion}
 
