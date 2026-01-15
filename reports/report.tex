@@ -16,16 +16,16 @@
 \maketitle
 
 \begin{abstract}
-We reproduce the AINL-Eval 2025 winning solution (sastsy, 91.22\%) for detecting AI-generated scientific abstracts in Russian. The key challenge is identifying texts from unknown AI models not seen during training. We apply Mahalanobis distance-based OOD detection to Qwen2.5-7B with Dual-Head architecture, improving accuracy by +10.4\% over softmax confidence (from 79.53\% to 89.97\%) with 76.25\% unknown class recall. Mahalanobis also boosts lightweight ruBERT-tiny2 (29M params) to 85.25\% — only 4.7\% below Qwen, but 20x faster (15ms CPU) and 127x smaller. Code: \url{https://github.com/dpGorbunov/nlp-sem-project}.
+We reproduce the AINL-Eval 2025 winning solution (sastsy, 91.22\%) for detecting AI-generated scientific abstracts in Russian. The key challenge is identifying texts from unknown AI models not seen during training. We apply Mahalanobis distance-based OOD detection to Qwen2.5-7B with Dual-Head architecture, improving accuracy by +10.4\% over softmax confidence (from 79.53\% to 89.97\%) with 76.25\% unknown class recall. Mahalanobis also boosts lightweight ruBERT-tiny2 (29M params) to 85.25\% -- only 4.7\% below Qwen, but 20x faster (15ms CPU) and 127x smaller. Code: \url{https://github.com/dpGorbunov/nlp-sem-project}.
 \end{abstract}
 
 \section{Introduction}
 
-The proliferation of large language models (LLMs) poses threats to academic integrity. Detection of machine-generated text is crucial for scientific publications.
+As LLMs become increasingly capable, distinguishing human-written scientific texts from AI-generated ones grows harder. A student can now generate a plausible abstract in seconds, and reviewers cannot reliably tell the difference. This threatens the integrity of scientific publishing.
 
-AINL-Eval 2025 shared task~\cite{ainleval2025} addresses this problem for Russian scientific abstracts with classification into 5 classes: human, GPT-4-turbo, Llama-3.3-70B, Gemma-2-27B, and unknown.
+The AINL-Eval 2025 shared task~\cite{ainleval2025} tackles this challenge for Russian scientific abstracts. The task is not just binary (human vs AI) -- it requires identifying \textit{which} AI model generated the text, including an "unknown" class for models not seen during training. This makes the problem significantly harder: the system must generalize to new AI models.
 
-The winner sastsy~\cite{ainleval2025} achieved 91.22\% dev accuracy using GigaCheck~\cite{gigacheck2024} with Dual-Head modification. Our work reproduces this approach with improvements:
+The winning solution by team sastsy achieved 91.22\% accuracy using GigaCheck~\cite{gigacheck2024} with a Dual-Head modification. We reproduce and extend this approach:
 
 \begin{enumerate}
     \item \textbf{Qwen2.5-7B}: stronger backbone than Mistral-7B on benchmarks
@@ -39,62 +39,41 @@ The winner sastsy~\cite{ainleval2025} achieved 91.22\% dev accuracy using GigaCh
 \section{Related Work}
 \label{sec:related}
 
-\subsection{GigaCheck}
-GigaCheck~\cite{gigacheck2024} is a framework for LLM-generated content detection:
-\begin{itemize}
-    \item Backbone: Mistral-7B with LoRA (r=8, alpha=16)
-    \item Pooling: EOS token only
-    \item Classification: single head with CrossEntropy loss
-\end{itemize}
+\textbf{GigaCheck}~\cite{gigacheck2024} established a strong baseline for LLM-generated content detection using Mistral-7B fine-tuned with LoRA~\cite{hu2022lora}. LoRA enables efficient adaptation by learning low-rank updates: $W' = W + \frac{\alpha}{r} \cdot BA$, where only matrices $B$ and $A$ are trained. GigaCheck uses EOS token pooling and a single classification head.
 
-\subsection{sastsy Solution}
-The winning team sastsy~\cite{ainleval2025} extended GigaCheck with Dual-Head architecture:
-\begin{itemize}
-    \item Binary Head: human (0) vs AI (1)
-    \item Multiclass Head: GPT-4, Llama, Gemma, unknown (detected via OOD methods)
-\end{itemize}
+\textbf{The sastsy solution}~\cite{ainleval2025} improved GigaCheck by splitting classification into two heads: binary (human vs AI) and multiclass (which AI model). This separation helps because detecting AI is easier than identifying the specific model -- the binary head achieves 95\%+ accuracy while multiclass is harder.
 
-\subsection{LoRA}
-Low-Rank Adaptation~\cite{hu2022lora} enables efficient LLM fine-tuning:
-$$W' = W + \frac{\alpha}{r} \cdot BA$$
-where $r$ is rank, $\alpha$ is scaling factor.
+\textbf{Knowledge Distillation} allows compressing large models into smaller ones. DisRanker~\cite{disranker2024} showed that LLM knowledge can be distilled to BERT with 10x speedup and minimal quality loss, motivating our experiments with ruBERT-tiny2.
 
-\subsection{Knowledge Distillation}
-DisRanker~\cite{disranker2024} demonstrates effective LLM-to-BERT distillation with 10x speedup and minimal quality loss.
-
-\subsection{Mahalanobis Distance for OOD Detection}
-Mahalanobis distance~\cite{mahalanobis2018} is a powerful method for out-of-distribution (OOD) detection. For a sample embedding $x$, the distance to class $c$ is:
+\textbf{Mahalanobis distance}~\cite{mahalanobis2018} measures how far a sample is from a class distribution, accounting for correlations:
 $$D_M(x, c) = \sqrt{(x - \mu_c)^T \Sigma^{-1} (x - \mu_c)}$$
-where $\mu_c$ is the class mean and $\Sigma$ is the tied covariance matrix. Samples with high minimum distance across all classes are classified as OOD (unknown).
+Unlike softmax confidence, which only considers the model's output logits, Mahalanobis operates in embedding space and can detect samples that are far from all known classes -- exactly what we need for the "unknown" AI model problem.
 
 \section{Model Description}
 
 \subsection{Architecture Overview}
-Following sastsy~\cite{ainleval2025}, our architecture consists of:
+We follow the sastsy architecture but replace Mistral-7B with Qwen2.5-7B. Why Qwen? According to the Qwen2 Technical Report~\cite{qwen2024}, it outperforms Mistral on standard benchmarks (Tab.~\ref{tab:qwen_mistral}), suggesting better text understanding.
+
+The model has four components:
 \begin{enumerate}
-    \item Backbone: Qwen2.5-7B + LoRA (r=8, alpha=16)
-    \item Pooling: EOS token (last token with left padding)
-    \item Shared Layer: Linear layer with tanh activation and dropout
-    \item Dual-Head: Binary + Multiclass classification
+    \item \textbf{Backbone}: Qwen2.5-7B fine-tuned with LoRA (r=8, alpha=16) -- we only train 0.04\% of parameters
+    \item \textbf{Pooling}: EOS token embedding (the last token captures the full sequence context)
+    \item \textbf{Shared Layer}: Linear + tanh + dropout (transforms embeddings before classification)
+    \item \textbf{Dual-Head}: Two classification heads working together
 \end{enumerate}
 
-The key difference is the backbone: we use Qwen2.5-7B instead of Mistral-7B.
-
 \subsection{Dual-Head Architecture}
-Following sastsy~\cite{ainleval2025}:
-\begin{itemize}
-    \item Binary Head: human (0) vs AI (1)
-    \item Multiclass Head: GPT-4, Llama, Gemma, unknown (detected via Mahalanobis)
-\end{itemize}
+The key insight from sastsy: separate easy and hard tasks.
 
-Loss function:
+\textbf{Binary Head} answers: "Is this AI-generated?" This is relatively easy -- AI texts have subtle but consistent patterns.
+
+\textbf{Multiclass Head} answers: "Which AI model?" This is harder -- different LLMs produce similar outputs.
+
+During training, both heads are optimized jointly:
 $$\mathcal{L} = \mathcal{L}_{CE}^{bin} + \mathcal{L}_{CE}^{multi}$$
-where multiclass loss ignores human samples (\texttt{ignore\_index=-1}).
+The multiclass loss ignores human samples (they have no AI model label).
 
-Inference: if binary=0 $\rightarrow$ human, else use multiclass prediction.
-
-\subsection{Why Qwen2.5 over Mistral}
-According to Qwen2 Technical Report~\cite{qwen2024}, Qwen2-7B outperforms Mistral-7B on standard benchmarks (Tab.~\ref{tab:qwen_mistral}).
+During inference: if binary predicts "human" → output human. Otherwise, use multiclass prediction. The "unknown" class is not predicted directly -- it is detected via Mahalanobis distance on embeddings.
 
 \begin{table}[tbh!]
 \centering
@@ -113,7 +92,7 @@ GSM8K & \textbf{79.9} & 52.2 & +27.7 \\
 
 \section{Dataset}
 
-We use the AINL-Eval 2025 dataset~\cite{ainleval2025} for AI-generated Russian scientific abstract detection.
+The AINL-Eval 2025 dataset~\cite{ainleval2025} contains Russian scientific abstracts from four sources: human-written, GPT-4-Turbo, Llama-3.3-70B, and Gemma-2-27B (Tab.~\ref{tab:dataset}).
 
 \begin{table}[tbh!]
 \centering
@@ -129,13 +108,11 @@ Classes & 4 & 5 & 5 \\
 \label{tab:dataset}
 \end{table}
 
-\textbf{Train classes}: human, GPT-4-Turbo, Llama-3.3-70B, Gemma-2-27B.
+The critical twist: dev and test sets include a fifth class -- "unknown" -- generated by models \textit{not present in training} (GigaChat-Lite in dev, DeepSeek-V3 in test). A classifier trained on four classes has never seen these models and must somehow recognize "this looks like AI, but not any AI I know."
 
-\textbf{Unknown class}: GigaChat-Lite in dev, DeepSeek-V3 in test (unseen during training).
+This is the core OOD detection challenge. Standard softmax confidence fails here: the model confidently misclassifies unknown samples as one of the known AI models. Mahalanobis distance solves this by measuring distance in embedding space -- unknown samples are far from all class centroids.
 
-\textbf{Key observation}: Human texts average 126 words vs 50--86 for AI models, and contain 10x more digits~\cite{ainleval2025}.
-
-\textbf{OOD detection challenge}: The unknown class is absent from training data. We compare softmax confidence threshold and Mahalanobis distance~\cite{mahalanobis2018}.
+\textbf{Interesting observation}: Human texts are longer (126 words on average) and contain 10x more digits than AI-generated ones~\cite{ainleval2025}. This suggests simple features could help, but our TF-IDF baseline shows they are not enough.
 
 \section{Experiments}
 
@@ -163,7 +140,7 @@ We also report precision, recall, and F1-score per class, and visualize results 
 
 \section{Results}
 
-Results are presented in Tab.~\ref{tab:results}. We compare two OOD detection methods: softmax confidence threshold and Mahalanobis distance.
+Tab.~\ref{tab:results} shows our main results. The "Base" column is accuracy without any unknown detection -- the model predicts one of 4 known classes for every sample. "Confidence" uses softmax threshold: if max probability is below a threshold, predict "unknown". "Mahalanobis" uses distance in embedding space.
 
 \begin{table}[tbh!]
 \centering
@@ -185,10 +162,12 @@ Qwen2.5 + Dual-Head (ours) & 79.53\% & 82.61\% & \textbf{89.97\%} \\
 \label{tab:results}
 \end{table}
 
+\textbf{Why does Mahalanobis work so much better?} Softmax confidence measures how "sure" the model is about its prediction, but a model trained only on GPT-4/Llama/Gemma will confidently assign GigaChat samples to one of these classes -- it has no concept of "none of the above." Mahalanobis distance, computed on the shared layer embeddings, measures geometric distance to class clusters. Unknown AI models produce embeddings that are far from all known class centroids, making them detectable.
+
 \textbf{Key findings}:
 \begin{enumerate}
-    \item Mahalanobis distance significantly improves unknown class detection, boosting Qwen accuracy from 79.53\% to 89.97\% (+10.4\%). The binary head achieves 95.38\% accuracy, unknown recall reaches 76.25\%.
-    \item \textbf{Practical deployment}: ruBERT-tiny2 (118MB, 29M params) with Mahalanobis achieves 85.25\% accuracy — only 4.7\% below Qwen, but with \textbf{20x faster inference} ($\sim$15ms CPU vs $\sim$300ms GPU) and \textbf{127x smaller} model size. This enables real-time CPU deployment without GPU.
+    \item Mahalanobis boosts accuracy from 79.53\% to 89.97\% (+10.4\%). The binary head alone achieves 95.38\% (human vs AI is easy), and unknown recall reaches 76.25\%.
+    \item ruBERT-tiny2 with Mahalanobis achieves 85.25\% -- only 4.7\% below Qwen, but 20x faster and 127x smaller. This makes real-time CPU deployment feasible.
 \end{enumerate}
 
 \begin{figure}[!tbh]
@@ -230,24 +209,13 @@ Fine-tuned BERT + KD & 118 MB & $\sim$15ms (CPU) & 77.01\% & 85.25\% \\
 
 \section{Conclusion}
 
-We reproduced the sastsy (AINL-Eval 2025 winner) approach for AI-generated text detection with the following contributions:
+The main takeaway from this work: \textbf{detecting unknown AI models is hard, but Mahalanobis distance makes it tractable}. Standard confidence-based methods fail because neural networks are confidently wrong on out-of-distribution samples. Mahalanobis operates in embedding space where "unknown" means "far from everything I've seen" - a much more robust criterion.
 
-\begin{enumerate}
-    \item \textbf{Qwen2.5-7B backbone}: replacing Mistral-7B with Qwen2.5-7B-Instruct
-    \item \textbf{Mahalanobis OOD detection}: distance-based method for unknown class, improving accuracy from 79.53\% to 89.97\% (+10.4\%)
-    \item \textbf{Practical deployment}: ruBERT-tiny2 achieves 85.25\% with Mahalanobis (20x faster, 127x smaller than Qwen)
-\end{enumerate}
+Our best model (Qwen2.5-7B + Dual-Head + Mahalanobis) achieves 89.97\% accuracy, with 76.25\% recall on the unknown class. But perhaps more interesting is that ruBERT-tiny2 - a model 260x smaller - reaches 85.25\% with the same Mahalanobis approach. This suggests that the OOD detection method matters more than model size for this task.
 
-\textbf{Summary of results}:
-\begin{itemize}
-    \item Best model: Qwen2.5 + Dual-Head + Mahalanobis = \textbf{89.97\%} dev accuracy
-    \item Binary classification (human vs AI): 95.38\%
-    \item Unknown class recall: 76.25\%
-\end{itemize}
+\textbf{Practical implications}: A 29M parameter model running in 15ms on CPU can detect AI-generated scientific abstracts with reasonable accuracy. This enables deployment in resource-constrained environments - browser extensions, email filters, or mobile apps - without GPU infrastructure.
 
-\textbf{Key practical finding}: Fine-tuned ruBERT-tiny2 (118MB, 29M params) with Mahalanobis OOD detection achieves \textbf{85.25\%} accuracy — only 4.7\% below the best Qwen model, but with \textbf{20x faster inference} ($\sim$15ms on CPU vs $\sim$300ms on GPU) and \textbf{127x smaller} model size (118MB vs 15GB). This demonstrates that lightweight models combined with proper OOD detection can approach LLM-level performance while enabling real-time CPU deployment without specialized hardware.
-
-\textbf{Limitations}: Mahalanobis requires pre-computing class statistics from training embeddings. Future work could explore online estimation or more efficient OOD methods.
+\textbf{Limitations}: Mahalanobis requires computing class statistics from training data embeddings upfront. If the distribution of AI models shifts (new models appear), these statistics need recomputation. Future work could explore online or adaptive OOD detection methods.
 
 \bibliographystyle{apalike}
 \begin{thebibliography}{9}

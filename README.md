@@ -15,7 +15,7 @@ Reproduction of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection
 | [sastsy (winner)](https://arxiv.org/abs/2508.09622) | - | - | - | 91.22% |
 | TF-IDF baseline | - | - | - | 80.81% |
 
-**Key finding**: ruBERT-tiny2 achieves **85.25%** accuracy — only 4.7% below Qwen, but **20x faster** and **127x smaller**.
+**Key finding**: ruBERT-tiny2 achieves **85.25%** accuracy -- only 4.7% below Qwen, but **20x faster** and **127x smaller**.
 
 ## Method
 
@@ -103,7 +103,7 @@ Open `ai_text_detection.ipynb` in Jupyter. The notebook includes pre-computed ou
 
 ## Author
 
-**Dmitry Gorbunov** — ITMO University, AI Talent Hub
+**Dmitry Gorbunov** -- ITMO University, AI Talent Hub
 
 ## License
 
