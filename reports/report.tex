@@ -43,12 +43,6 @@ The winning solution by team sastsy achieved 91.22\% accuracy using GigaCheck~\c
 
 \textbf{The sastsy solution}~\cite{ainleval2025} improved GigaCheck by splitting classification into two heads: binary (human vs AI) and multiclass (which AI model). This separation helps because detecting AI is easier than identifying the specific model -- the binary head achieves 95\%+ accuracy while multiclass is harder.
 
-\textbf{Knowledge Distillation} allows compressing large models into smaller ones. DisRanker~\cite{disranker2024} showed that LLM knowledge can be distilled to BERT with 10x speedup and minimal quality loss, motivating our experiments with ruBERT-tiny2.
-
-\textbf{Mahalanobis distance}~\cite{mahalanobis2018} measures how far a sample is from a class distribution, accounting for correlations:
-$$D_M(x, c) = \sqrt{(x - \mu_c)^T \Sigma^{-1} (x - \mu_c)}$$
-Unlike softmax confidence, which only considers the model's output logits, Mahalanobis operates in embedding space and can detect samples that are far from all known classes -- exactly what we need for the "unknown" AI model problem.
-
 \section{Model Description}
 
 \subsection{Architecture Overview}
@@ -74,6 +68,11 @@ $$\mathcal{L} = \mathcal{L}_{CE}^{bin} + \mathcal{L}_{CE}^{multi}$$
 The multiclass loss ignores human samples (they have no AI model label).
 
 During inference: if binary predicts "human" → output human. Otherwise, use multiclass prediction. The "unknown" class is not predicted directly -- it is detected via Mahalanobis distance on embeddings.
+
+\subsection{Mahalanobis OOD Detection}
+The multiclass head can only predict known classes (GPT-4, Llama, Gemma). To detect unknown AI models, we use Mahalanobis distance~\cite{mahalanobis2018} in embedding space:
+$$D_M(x, c) = \sqrt{(x - \mu_c)^T \Sigma^{-1} (x - \mu_c)}$$
+Unlike softmax confidence, which only considers output logits, Mahalanobis measures geometric distance to class centroids accounting for correlations. Samples far from all known classes are flagged as "unknown" -- exactly what we need for unseen AI models.
 
 \begin{table}[tbh!]
 \centering
@@ -177,9 +176,9 @@ Qwen2.5 + Dual-Head (ours) & 79.53\% & 82.61\% & \textbf{89.97\%} \\
 \label{fig:comparison}
 \end{figure}
 
-\subsection{Knowledge Distillation Results}
+\subsection{Knowledge Distillation}
 
-We distill Qwen to ruBERT-tiny using DisRanker approach~\cite{disranker2024}:
+Qwen2.5-7B requires GPU and is too slow for real-time applications. Following DisRanker~\cite{disranker2024}, which showed LLM knowledge can be distilled to BERT with 10x speedup, we compress to ruBERT-tiny2 (29M params):
 $$\mathcal{L} = \alpha \cdot \mathcal{L}_{KL}(p_s, p_t) \cdot T^2 + (1-\alpha) \cdot \mathcal{L}_{CE}(p_s, y)$$
 where $T=4$ (temperature), $\alpha=0.7$.
 
