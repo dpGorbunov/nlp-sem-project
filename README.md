@@ -22,7 +22,7 @@ Reproduction of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection
 ### 1. Dual-Head Architecture
 Following [GigaCheck](https://arxiv.org/abs/2410.23728) and sastsy:
 - **Binary head**: human vs AI
-- **Multiclass head**: GPT-4 / Llama / Gemma / Unknown
+- **Multiclass head**: GPT-4 / Llama / Gemma / unknown (via OOD detection)
 
 ### 2. Mahalanobis OOD Detection
 - Computes distance to class centroids in embedding space
@@ -44,10 +44,11 @@ Following [GigaCheck](https://arxiv.org/abs/2410.23728) and sastsy:
 ├── ai_text_detection.ipynb       # Main notebook (with outputs)
 ├── data/
 │   ├── train.csv                 # 35,158 samples (4 classes)
-│   ├── dev_full.csv              # 10,978 samples (5 classes)
+│   ├── dev_full.csv              # 10,979 samples (5 classes)
 │   └── test.csv                  # 6,169 samples (5 classes)
 └── reports/
-    └── report.tex                # LaTeX report
+    ├── report.tex                # LaTeX report
+    └── report.pdf                # PDF report
 ```
 
 ## Quick Start

@@ -8,7 +8,7 @@
 \usepackage{hyperref}
 \usepackage{booktabs}
 
-\title{Qwen2.5 Dual-Head for AI-Generated Text Detection:\\Reproducing AINL-Eval 2025 Winner with Knowledge Distillation}
+\title{Mahalanobis OOD Detection for AI-Generated Text Classification}
 \author{Dmitry Gorbunov\\ITMO University, AI Talent Hub}
 \date{2025}
 
@@ -16,7 +16,7 @@
 \maketitle
 
 \begin{abstract}
-We reproduce the AINL-Eval 2025 winning solution (sastsy) for detecting AI-generated scientific abstracts in Russian. Our contributions: (1) Qwen2.5-7B backbone with Dual-Head architecture achieving 89.97\% dev accuracy; (2) Mahalanobis distance-based OOD detection for unknown class (+10.4\% improvement); (3) Practical finding: fine-tuned ruBERT-tiny2 (29M params) with Mahalanobis achieves 85.25\% accuracy with 20x faster inference (15ms CPU vs 300ms GPU) and 127x smaller model size (118MB vs 15GB). Code: \url{https://github.com/dpGorbunov/nlp-sem-project}.
+We reproduce the AINL-Eval 2025 winning solution (sastsy, 91.22\%) for detecting AI-generated scientific abstracts in Russian. The key challenge is identifying texts from unknown AI models not seen during training. We apply Mahalanobis distance-based OOD detection to Qwen2.5-7B with Dual-Head architecture, improving accuracy by +10.4\% over softmax confidence (from 79.53\% to 89.97\%) with 76.25\% unknown class recall. Mahalanobis also boosts lightweight ruBERT-tiny2 (29M params) to 85.25\% — only 4.7\% below Qwen, but 20x faster (15ms CPU) and 127x smaller. Code: \url{https://github.com/dpGorbunov/nlp-sem-project}.
 \end{abstract}
 
 \section{Introduction}
@@ -29,7 +29,7 @@ The winner sastsy~\cite{ainleval2025} achieved 91.22\% dev accuracy using GigaCh
 
 \begin{enumerate}
     \item \textbf{Qwen2.5-7B}: stronger backbone than Mistral-7B on benchmarks
-    \item \textbf{Mahalanobis OOD Detection}: distance-based method for unknown class detection (+10\% over baseline)
+    \item \textbf{Mahalanobis OOD Detection}: distance-based method for unknown class detection (+10.4\% over baseline)
     \item \textbf{Knowledge Distillation}: distillation to ruBERT-tiny for CPU inference
 \end{enumerate}
 
@@ -51,7 +51,7 @@ GigaCheck~\cite{gigacheck2024} is a framework for LLM-generated content detectio
 The winning team sastsy~\cite{ainleval2025} extended GigaCheck with Dual-Head architecture:
 \begin{itemize}
     \item Binary Head: human (0) vs AI (1)
-    \item Multiclass Head: GPT-4, Llama, Gemma, Unknown
+    \item Multiclass Head: GPT-4, Llama, Gemma, unknown (detected via OOD methods)
 \end{itemize}
 
 \subsection{LoRA}
@@ -74,7 +74,7 @@ Following sastsy~\cite{ainleval2025}, our architecture consists of:
 \begin{enumerate}
     \item Backbone: Qwen2.5-7B + LoRA (r=8, alpha=16)
     \item Pooling: EOS token (last token with left padding)
-    \item Shared Layer: 2-layer MLP with tanh activation
+    \item Shared Layer: Linear layer with tanh activation and dropout
     \item Dual-Head: Binary + Multiclass classification
 \end{enumerate}
 
@@ -84,7 +84,7 @@ The key difference is the backbone: we use Qwen2.5-7B instead of Mistral-7B.
 Following sastsy~\cite{ainleval2025}:
 \begin{itemize}
     \item Binary Head: human (0) vs AI (1)
-    \item Multiclass Head: GPT-4, Llama, Gemma, Unknown
+    \item Multiclass Head: GPT-4, Llama, Gemma, unknown (detected via Mahalanobis)
 \end{itemize}
 
 Loss function:
@@ -121,7 +121,7 @@ We use the AINL-Eval 2025 dataset~\cite{ainleval2025} for AI-generated Russian s
 \hline
  & Train & Dev & Test \\
 \hline
-Samples & 35,158 & 10,978 & 6,169 \\
+Samples & 35,158 & 10,979 & 6,169 \\
 Classes & 4 & 5 & 5 \\
 \hline
 \end{tabular}
@@ -158,7 +158,7 @@ We also report precision, recall, and F1-score per class, and visualize results 
 \begin{itemize}
     \item TF-IDF + Logistic Regression
     \item ruBERT-tiny fine-tuned
-    \item sastsy (GigaCheck)~\cite{gigacheck2024}: 1st place winner
+    \item sastsy~\cite{ainleval2025}: 1st place winner (GigaCheck-based)
 \end{itemize}
 
 \section{Results}
@@ -176,8 +176,8 @@ TF-IDF baseline (competition) & 80.81\% & -- & -- \\
 sastsy (1st place)~\cite{ainleval2025} & 91.22\% & -- & -- \\
 \hline
 \multicolumn{4}{|l|}{\textit{Our experiments:}} \\
-TF-IDF + LogReg & -- & 82.62\% & -- \\
-ruBERT-tiny (fine-tuned) & 78.29\% & 85.25\% & 85.25\% \\
+TF-IDF + LogReg & 76.85\% & 81.06\% & -- \\
+ruBERT-tiny (fine-tuned) & 78.29\% & 80.29\% & 85.25\% \\
 Qwen2.5 + Dual-Head (ours) & 79.53\% & 82.61\% & \textbf{89.97\%} \\
 \hline
 \end{tabular}
@@ -188,7 +188,7 @@ Qwen2.5 + Dual-Head (ours) & 79.53\% & 82.61\% & \textbf{89.97\%} \\
 \textbf{Key findings}:
 \begin{enumerate}
     \item Mahalanobis distance significantly improves unknown class detection, boosting Qwen accuracy from 79.53\% to 89.97\% (+10.4\%). The binary head achieves 95.38\% accuracy, unknown recall reaches 76.25\%.
-    \item \textbf{Practical deployment}: ruBERT-tiny2 (118MB, 29M params) with Mahalanobis achieves 85.25\% accuracy — only 4.7\% below Qwen SOTA, but with \textbf{20x faster inference} ($\sim$15ms CPU vs $\sim$300ms GPU) and \textbf{127x smaller} model size. This enables real-time CPU deployment without GPU.
+    \item \textbf{Practical deployment}: ruBERT-tiny2 (118MB, 29M params) with Mahalanobis achieves 85.25\% accuracy — only 4.7\% below Qwen, but with \textbf{20x faster inference} ($\sim$15ms CPU vs $\sim$300ms GPU) and \textbf{127x smaller} model size. This enables real-time CPU deployment without GPU.
 \end{enumerate}
 
 \begin{figure}[!tbh]
@@ -222,7 +222,7 @@ Fresh BERT + KD & 118 MB & $\sim$15ms (CPU) & 74.21\% & 80.44\% \\
 Fine-tuned BERT + KD & 118 MB & $\sim$15ms (CPU) & 77.01\% & 85.25\% \\
 \hline
 \end{tabular}
-\caption{Teacher vs Student comparison. Qwen: 7.61B params~\cite{qwen2024}, ruBERT-tiny2: 29M params~\cite{ruberttiny2} (260$\times$ smaller). Inference times based on~\cite{bertcpu2022}.}
+\caption{Teacher vs Student comparison. Qwen: 7.61B params~\cite{qwen2024}, ruBERT-tiny2: 29M params~\cite{ruberttiny2} (260$\times$ fewer params, 127$\times$ smaller file size). Inference times based on~\cite{bertcpu2022}.}
 \label{tab:distill}
 \end{table}
 
