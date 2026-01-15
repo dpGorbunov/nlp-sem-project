@@ -45,7 +45,7 @@ Following [GigaCheck](https://arxiv.org/abs/2410.23728) and sastsy:
 ├── data/
 │   ├── train.csv                 # 35,158 samples (4 classes)
 │   ├── dev_full.csv              # 10,979 samples (5 classes)
-│   └── test.csv                  # 6,169 samples (5 classes)
+│   └── test.csv                  # 6,169 samples (no labels)
 └── reports/
     ├── report.tex                # LaTeX report
     └── report.pdf                # PDF report
