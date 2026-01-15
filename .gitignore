@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+tmpclaude-*
+*.zip
+nul
+
+# Models (too large for git)
+models/
+checkpoints/
+*.pt
+*.bin
+*.safetensors
+distilled_rubert/
+
+# External repos
+AINL-Eval-2025/
+
+# Cloned repos (reference only)
+gigacheck/
+
+# Temp
+*.tmp
+*.log
+*.bak
+
+# Claude
+.claude/
