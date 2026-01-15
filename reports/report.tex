@@ -56,6 +56,21 @@ The model has four components:
     \item \textbf{Dual-Head}: Two classification heads working together
 \end{enumerate}
 
+\begin{table}[tbh!]
+\centering
+\begin{tabular}{|l|ccc|}
+\hline
+Benchmark & Qwen2-7B & Mistral-7B & $\Delta$ \\
+\hline
+MMLU & \textbf{70.3} & 64.2 & +6.1 \\
+HumanEval & \textbf{51.2} & 29.3 & +21.9 \\
+GSM8K & \textbf{79.9} & 52.2 & +27.7 \\
+\hline
+\end{tabular}
+\caption{Qwen2-7B vs Mistral-7B benchmark comparison.}
+\label{tab:qwen_mistral}
+\end{table}
+
 \subsection{Dual-Head Architecture}
 The key insight from sastsy: separate easy and hard tasks.
 
@@ -73,21 +88,6 @@ During inference: if binary predicts "human" → output human. Otherwise, use mu
 The multiclass head can only predict known classes (GPT-4, Llama, Gemma). To detect unknown AI models, we use Mahalanobis distance~\cite{mahalanobis2018} in embedding space:
 $$D_M(x, c) = \sqrt{(x - \mu_c)^T \Sigma^{-1} (x - \mu_c)}$$
 Unlike softmax confidence, which only considers output logits, Mahalanobis measures geometric distance to class centroids accounting for correlations. Samples far from all known classes are flagged as "unknown" -- exactly what we need for unseen AI models.
-
-\begin{table}[tbh!]
-\centering
-\begin{tabular}{|l|ccc|}
-\hline
-Benchmark & Qwen2-7B & Mistral-7B & $\Delta$ \\
-\hline
-MMLU & \textbf{70.3} & 64.2 & +6.1 \\
-HumanEval & \textbf{51.2} & 29.3 & +21.9 \\
-GSM8K & \textbf{79.9} & 52.2 & +27.7 \\
-\hline
-\end{tabular}
-\caption{Qwen2-7B vs Mistral-7B benchmark comparison.}
-\label{tab:qwen_mistral}
-\end{table}
 
 \section{Dataset}
 
