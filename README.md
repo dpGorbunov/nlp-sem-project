@@ -1,4 +1,4 @@
-# AI-Generated Text Detection for Russian Scientific Abstracts
+# Mahalanobis OOD Detection for AI-Generated Text Classification
 
 **NLP Semester Project** | [Competition](https://codalab.lisn.upsaclay.fr/competitions/21895) | [Paper](https://arxiv.org/abs/2508.09622) | [GigaCheck](https://arxiv.org/abs/2410.23728)
 
@@ -92,9 +92,9 @@ Open `ai_text_detection.ipynb` in Jupyter. The notebook includes pre-computed ou
 ## Citation
 
 ```bibtex
-@misc{gorbunov2025aitext,
+@misc{gorbunov2025mahalanobis,
   author = {Gorbunov, Dmitry},
-  title = {AI-Generated Text Detection with Mahalanobis OOD},
+  title = {Mahalanobis OOD Detection for AI-Generated Text Classification},
   year = {2025},
   publisher = {GitHub},
   url = {https://github.com/dpGorbunov/nlp-sem-project}
