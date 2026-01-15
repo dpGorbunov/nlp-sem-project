@@ -1,10 +1,8 @@
 # AI-Generated Text Detection for Russian Scientific Abstracts
 
-[![Competition](https://img.shields.io/badge/AINL--Eval%202025-Shared%20Task-blue)](https://codalab.lisn.upsaclay.fr/competitions/21895)
-[![Paper](https://img.shields.io/badge/arXiv-2508.09622-b31b1b)](https://arxiv.org/abs/2508.09622)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+**NLP Semester Project** | [Competition](https://codalab.lisn.upsaclay.fr/competitions/21895) | [Paper](https://arxiv.org/abs/2508.09622) | [GigaCheck](https://arxiv.org/abs/2410.23728)
 
-Reproduction of [AINL-Eval 2025](https://codalab.lisn.upsaclay.fr/competitions/21895) winning solution with **Mahalanobis OOD detection** for unknown AI model identification.
+Reproduction of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection** for unknown AI model identification.
 
 ![Results](results.png)
 
