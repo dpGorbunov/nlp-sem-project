@@ -2,7 +2,7 @@
 
 **NLP Semester Project** | [Competition](https://codalab.lisn.upsaclay.fr/competitions/21895) | [Paper](https://arxiv.org/abs/2508.09622) | [GigaCheck](https://arxiv.org/abs/2410.23728)
 
-Reproduction of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection** for unknown AI model identification.
+Extension of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection** for unknown AI model identification.
 
 ![Results](results.png)
 
@@ -10,12 +10,13 @@ Reproduction of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection
 
 | Model | Params | Size | Inference | Accuracy |
 |-------|--------|------|-----------|----------|
+| [sastsy (1st place)](https://arxiv.org/abs/2508.09622) | - | - | - | 91.22% |
 | **Qwen2.5-7B + Mahalanobis** | 7.61B | 15 GB | ~300ms (GPU) | **89.97%** |
-| ruBERT-tiny2 + Mahalanobis | 29M | 118 MB | ~15ms (CPU) | 85.25% |
-| [sastsy (winner)](https://arxiv.org/abs/2508.09622) | - | - | - | 91.22% |
+| adugeen (2nd place) | - | - | - | 86.96% |
+| ruBERT-tiny2 + Mahalanobis | 29M | 118 MB | ~3ms (GPU) | 85.25% |
 | TF-IDF baseline | - | - | - | 80.81% |
 
-**Key finding**: ruBERT-tiny2 achieves **85.25%** accuracy -- only 4.7% below Qwen, but **20x faster** and **127x smaller**.
+**Key finding**: ruBERT-tiny2 achieves **85.25%** accuracy -- only 4.7% below Qwen, but **100x faster** and **127x smaller**.
 
 ## Method
 
@@ -92,10 +93,10 @@ Open `ai_text_detection.ipynb` in Jupyter. The notebook includes pre-computed ou
 ## Citation
 
 ```bibtex
-@misc{gorbunov2025mahalanobis,
+@misc{gorbunov2026mahalanobis,
   author = {Gorbunov, Dmitry},
   title = {Mahalanobis OOD Detection for AI-Generated Text Classification},
-  year = {2025},
+  year = {2026},
   publisher = {GitHub},
   url = {https://github.com/dpGorbunov/nlp-sem-project}
 }
@@ -103,7 +104,7 @@ Open `ai_text_detection.ipynb` in Jupyter. The notebook includes pre-computed ou
 
 ## Author
 
-**Dmitry Gorbunov** -- ITMO University, AI Talent Hub
+**Dmitry Gorbunov** -- ITMO University, Institute of Applied Computer Science, Master's student in AI (1st year)
 
 ## License
 
