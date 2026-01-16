@@ -210,7 +210,7 @@ ruBERT-tiny2 FT + KD & 118 MB & $\sim$3ms (GPU) & 77.01\% & 85.25\% \\
 
 The main contribution of this work: \textbf{detecting unknown AI models is challenging; Mahalanobis distance provides an effective solution}. Standard confidence-based methods perform poorly because neural networks tend to be overconfident on out-of-distribution samples. Mahalanobis offers a more robust criterion: "unknown" means "far from everything I've seen".
 
-Our best model (Qwen2.5-7B + Dual-Head + Mahalanobis) achieves 89.97\% accuracy, with 76.25\% recall on the unknown class. Notably, ruBERT-tiny2 -- a model 260x smaller -- achieves comparable results with the same approach. This suggests that the OOD detection method may matter more than model size for this task.
+Our best model (Qwen2.5-7B + Dual-Head + Mahalanobis) achieves 89.97\% accuracy, with 76.25\% recall on the unknown class. Although this does not surpass the winning solution (91.22\%), our contribution is methodological: we demonstrate that Mahalanobis distance significantly improves unknown class detection compared to confidence-based approaches. Notably, ruBERT-tiny2 -- a model 260x smaller -- achieves comparable results using Mahalanobis OOD detection. This suggests that the OOD detection method may matter more than model size for this task.
 
 \textbf{Practical implications}: A 29M parameter model running in 3ms on GPU (or 5ms on CPU) can detect AI-generated scientific abstracts with reasonable accuracy. This enables deployment in resource-constrained environments - browser extensions, email filters, or mobile apps - without GPU infrastructure.
 
