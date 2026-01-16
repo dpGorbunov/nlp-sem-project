@@ -4,7 +4,7 @@
 
 Extension of AINL-Eval 2025 winning solution with **Mahalanobis OOD detection** for unknown AI model identification.
 
-![Results](results.png)
+![Results](images/results.png)
 
 ## Results
 
@@ -30,7 +30,7 @@ Following [GigaCheck](https://arxiv.org/abs/2410.23728) and sastsy:
 - Detects unknown AI models (GigaChat-Lite, DeepSeek-V3) not seen during training
 - **+10.4%** accuracy improvement over softmax confidence baseline
 
-![Mahalanobis](mahalanobis.png)
+![Mahalanobis](images/mahalanobis.png)
 
 ### 3. Knowledge Distillation
 - **Teacher**: Qwen2.5-7B (7.61B params)
@@ -47,6 +47,9 @@ Following [GigaCheck](https://arxiv.org/abs/2410.23728) and sastsy:
 │   ├── train.csv                 # 35,158 samples (4 classes)
 │   ├── dev_full.csv              # 10,979 samples (5 classes)
 │   └── test.csv                  # 6,169 samples (no labels)
+├── images/                       # Figures for README
+│   ├── results.png
+│   └── mahalanobis.png
 └── reports/
     ├── report.tex                # LaTeX report
     └── report.pdf                # PDF report
